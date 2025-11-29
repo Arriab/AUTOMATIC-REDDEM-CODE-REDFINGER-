@@ -1,101 +1,271 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Order Confirmation Generator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kode Redeem Manager</title>
 <style>
-  body {
+body {
     font-family: monospace;
-    padding: 20px;
-    background: #f4f4f4;
-  }
-  .card {
-    background: white;
-    padding: 20px;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+.container {
+    background: #fff;
+    padding: 25px;
     border-radius: 10px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  label { display:block; margin-top:10px; font-weight:bold; }
-  input, select, textarea {
     width: 100%;
+    max-width: 700px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+select, textarea, input, button {
     padding: 10px;
-    margin-top: 5px;
+    width: 100%;
+    margin: 5px 0;
     border-radius: 5px;
     border: 1px solid #ccc;
-  }
-  button {
-    margin-top: 15px;
-    padding: 12px;
-    width: 100%;
-    border: none;
-    border-radius: 8px;
-    background: black;
+    box-sizing: border-box;
+    font-size: 14px;
+    font-family: monospace;
+}
+textarea { height: 100px; }
+button {
+    cursor: pointer;
+    background: #4CAF50;
     color: white;
-    font-size: 16px;
-  }
-  pre {
-    background: #222;
-    color: #0f0;
+    border: none;
+}
+button:hover { background: #45a049; }
+#stock, #codeList, #output, #history {
+    margin-top: 15px;
     padding: 15px;
-    border-radius: 10px;
-    overflow-x: auto;
-    white-space: pre-wrap;
-  }
+    background: #eee;
+    border-radius: 5px;
+    white-space: pre;
+    font-family: monospace;
+}
+.codeItem, .historyItem {
+    padding: 8px;
+    background: #d9f9d9;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+.historyItem {
+    cursor: pointer;
+    background: #f9d9d9;
+}
+.historyItem:hover { background: #f0c0c0; }
+.priceSection {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap; /* Agar responsif */
+}
+.priceSection input {
+    flex: 1;
+    min-width: 0; /* Hindari overflow */
+}
 </style>
 </head>
 <body>
+<div class="container">
 
-<div class="card">
-  <h2>Order Generator</h2>
+<h2>Kode Redeem Manager</h2>
 
-  <label>Pilih Produk</label>
-  <select id="type" onchange="setPrice()">
-    <option value="7">VIP 7 Day</option>
-    <option value="30">VIP 30 Day</option>
-  </select>
-
-  <label>Harga</label>
-  <input type="number" id="price" value="0" />
-
-  <label>Take Quantity</label>
-  <input type="number" id="qty" value="1" />
-
-  <label>Kode Redeem (pisah baris untuk banyak kode)</label>
-  <textarea id="codes" rows="5"></textarea>
-
-  <button onclick="generateOutput()">Generate Output</button>
+<!-- Edit Harga -->
+<h3>Edit Harga:</h3>
+<div class="priceSection">
+    <input type="number" id="price7D" placeholder="Harga 7D (Rp)" min="0">
+    <input type="number" id="price30D" placeholder="Harga 30D (Rp)" min="0">
 </div>
+<button onclick="savePrices()">Simpan Harga</button>
 
-<div class="card">
-  <h3>Output</h3>
-  <pre id="output"></pre>
-  <button onclick="copyText()">Copy All</button>
+<hr>
+
+<!-- Tambah kode -->
+<select id="typeSelect">
+    <option value="7D">7 Day</option>
+    <option value="30D">30 Day</option>
+</select>
+
+<textarea id="codeInput" placeholder="Masukkan kode redeem (1 kode per baris)"></textarea>
+
+<input type="number" id="quantityInput" value="1" min="1">
+
+<button onclick="addCode()">Tambah Kode</button>
+
+<hr>
+
+<!-- Ambil kode -->
+<h3>Ambil Kode:</h3>
+
+<select id="redeemType">
+    <option value="7D">7 Day</option>
+    <option value="30D">30 Day</option>
+</select>
+
+<input type="number" id="redeemQty" value="1" min="1">
+
+<button onclick="redeemMultiple()">Ambil Kode</button>
+
+<h3>Stock:</h3>
+<div id="stock"></div>
+
+<h3>Daftar Kode:</h3>
+<div id="codeList"></div>
+
+<h3>Output:</h3>
+<div id="output"></div>
+
+<hr>
+
+<h3>Riwayat Output:</h3>
+<div id="history"></div>
+<button onclick="clearHistory()">Hapus Semua Riwayat</button>
+
 </div>
 
 <script>
-function setPrice() {
-  let t = document.getElementById("type").value;
-  document.getElementById("price").value = t == "7" ? 21000 : 61000;
+console.log("Script loaded"); // Log awal
+
+let codes = [];
+let history = [];
+let prices = { "7D": 21000, "30D": 61000 }; // Default
+
+try {
+    codes = JSON.parse(localStorage.getItem('codes')) || [];
+    history = JSON.parse(localStorage.getItem('history')) || [];
+    prices = JSON.parse(localStorage.getItem('prices')) || prices;
+    console.log("Data loaded from localStorage");
+} catch (e) {
+    console.error("Error loading localStorage:", e);
+    alert("Data localStorage rusak, menggunakan default.");
 }
 
-function generateOutput() {
-  let type = document.getElementById("type").value;
-  let price = parseInt(document.getElementById("price").value);
-  let qty = parseInt(document.getElementById("qty").value);
-  let codes = document.getElementById("codes").value.trim().split("\n");
+const stockDiv = document.getElementById('stock');
+const codeListDiv = document.getElementById('codeList');
+const outputDiv = document.getElementById('output');
+const historyDiv = document.getElementById('history');
+const price7DInput = document.getElementById('price7D');
+const price30DInput = document.getElementById('price30D');
 
-  let codeLines = codes.map(c => c.trim()).join("\n");
-  let totalPrice = price * qty;
+if (!stockDiv || !codeListDiv || !outputDiv || !historyDiv || !price7DInput || !price30DInput) {
+    console.error("UI elements not found!");
+    alert("Error: UI elements tidak ditemukan. Periksa HTML.");
+}
 
-  let text =
+function loadPrices() {
+    console.log("Loading prices");
+    price7DInput.value = prices["7D"];
+    price30DInput.value = prices["30D"];
+}
+
+function savePrices() {
+    console.log("Saving prices");
+    const p7 = parseInt(price7DInput.value);
+    const p30 = parseInt(price30DInput.value);
+    if (p7 > 0 && p30 > 0) {
+        prices["7D"] = p7;
+        prices["30D"] = p30;
+        localStorage.setItem('prices', JSON.stringify(prices));
+        alert("Harga berhasil disimpan!");
+    } else {
+        alert("Harga harus lebih dari 0!");
+    }
+}
+
+function updateStock() {
+    console.log("Updating stock");
+    let s7 = codes.filter(c => c.type === "7D").reduce((a,b)=>a+b.quantity, 0);
+    let s30 = codes.filter(c => c.type === "30D").reduce((a,b)=>a+b.quantity, 0);
+    stockDiv.textContent = `7 Day: ${s7} | 30 Day: ${s30}`;
+}
+
+function displayCodes() {
+    console.log("Displaying codes");
+    updateStock();
+    codeListDiv.innerHTML = "";
+    codes.forEach(c=>{
+        let d = document.createElement("div");
+        d.className = "codeItem";
+        d.textContent = `${c.type} : ${c.code} (x${c.quantity})`;
+        codeListDiv.appendChild(d);
+    });
+}
+
+function displayHistory() {
+    console.log("Displaying history");
+    historyDiv.innerHTML = "";
+    if (history.length === 0) {
+        historyDiv.textContent = "Belum ada riwayat.";
+        return;
+    }
+    history.forEach((h, index) => {
+        let d = document.createElement("div");
+        d.className = "historyItem";
+        d.textContent = `${h.timestamp} - ${h.type} x${h.quantity} (Rp ${h.totalPrice})`;
+        d.onclick = () => alert(h.fullOutput);
+        historyDiv.appendChild(d);
+    });
+}
+
+function addCode() {
+    console.log("Adding code");
+    const type = document.getElementById("typeSelect").value;
+    const input = document.getElementById("codeInput").value.trim();
+    const qty = parseInt(document.getElementById("quantityInput").value);
+
+    if(!input) return;
+
+    const lines = input.split(/\r?\n/);
+    lines.forEach(line=>{
+        const code = line.trim();
+        if(code){
+            let exist = codes.find(c=>c.code===code && c.type===type);
+            if(exist) exist.quantity += qty;
+            else codes.push({type:type, code:code, quantity:qty});
+        }
+    });
+
+    localStorage.setItem("codes", JSON.stringify(codes));
+    document.getElementById("codeInput").value = "";
+    document.getElementById("quantityInput").value = 1;
+    displayCodes();
+}
+
+function redeemMultiple(){
+    console.log("Redeeming codes");
+    let type = document.getElementById("redeemType").value;
+    let takeQty = parseInt(document.getElementById("redeemQty").value);
+
+    let filtered = [];
+    codes.forEach(c=>{
+        if(c.type===type){
+            for(let i=0;i<c.quantity;i++){
+                filtered.push({...c});
+            }
+        }
+    });
+
+    if(takeQty > filtered.length){
+        alert(`Stok ${type} kurang! Tersedia ${filtered.length}`);
+        return;
+    }
+
+    let taken = filtered.slice(0, takeQty);
+
+    let unitPrice = prices[type];
+    let totalPrice = (unitPrice*takeQty).toLocaleString("id");
+
+    let codeLines = taken.map(c=>c.code).join("\n               ");
+
+    let fullOutput =
 `== ORDER CONFIRMATION ==
-Product      :                            VIP Redeem Code ${type} Day (Redfinger)
-Quantity     :                                                   ${qty}x
-Total Price  :                                         Rp ${totalPrice}
-Redeem Code  :
-${codeLines}
+Product      : VIP Redeem Code ${type} (Redfinger)
+Quantity     : ${takeQty}
+Total Price  : Rp ${totalPrice}
+Redeem Code  : ${codeLines}
 
 Note:
 - Each code can be used for NewCloud and RenewCloud.
@@ -104,34 +274,52 @@ Note:
 
 Thank you for ordering from Arriab Store!`;
 
-  document.getElementById("output").innerText = text;
+    outputDiv.textContent = fullOutput;
+
+    history.push({
+        timestamp: new Date().toLocaleString("id"),
+        type: type,
+        quantity: takeQty,
+        totalPrice: totalPrice,
+        fullOutput: fullOutput
+    });
+    localStorage.setItem("history", JSON.stringify(history));
+    displayHistory();
+
+    taken.forEach(t=>{
+        let idx = codes.findIndex(c=>c.code===t.code && c.type===type);
+        if(idx>=0){
+            codes[idx].quantity -= 1;
+            if(codes[idx].quantity <= 0) codes.splice(idx, 1);
+        }
+    });
+
+    localStorage.setItem("codes", JSON.stringify(codes));
+    displayCodes();
 }
 
-function copyText() {
-  navigator.clipboard.writeText(document.getElementById("output").innerText);
+function clearHistory() {
+    console.log("Clear history clicked");
+    if (confirm("Yakin hapus semua riwayat?")) {
+        console.log("Confirmed, clearing history");
+        history = [];
+        localStorage.setItem("history", JSON.stringify(history));
+        displayHistory();
+        console.log("History cleared and displayed");
+    } else {
+        console.log("Cancelled");
+    }
 }
+
+console.log("Initializing UI");
+loadPrices();
+displayCodes();
+displayHistory();
+console.log("UI initialized");
 </script>
 
 </body>
 </html>
-        </div>
-
-        <hr style="margin:12px 0">
-
-        <h3>2) Pricing (editable)</h3>
-        <div class="row" style="margin-bottom:8px;">
-            <div style="flex:1;">
-                <label class="small">Price 7D (Rp)</label>
-                <input type="number" id="price7" value="21000" min="0" />
-            </div>
-            <div style="flex:1;">
-                <label class="small">Price 30D (Rp)</label>
-                <input type="number" id="price30" value="61000" min="0" />
-            </div>
-        </div>
-
-        <hr style="margin:12px 0">
-
         <h3>3) Export / Import</h3>
         <div class="row">
             <button id="exportJson" class="ghost">Export JSON</button>
