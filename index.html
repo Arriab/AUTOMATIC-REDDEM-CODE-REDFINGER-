@@ -1,136 +1,119 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Arriab Store — Redeem Manager</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Order Confirmation Generator</title>
 <style>
-    :root{
-        --bg:#f5f6fa;
-        --card:#ffffff;
-        --muted:#666;
-        --accent:#2f9e44;
-        --danger:#d9534f;
-        --glass: rgba(0,0,0,0.04);
-        --mono: "Courier New", Courier, monospace;
-    }
-    [data-theme="dark"]{
-        --bg:#0f1720;
-        --card:#0b1220;
-        --muted:#bfc8d6;
-        --accent:#28c76f;
-        --danger:#ff6b6b;
-        --glass: rgba(255,255,255,0.03);
-    }
-
-    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
-    body{background:var(--bg);padding:28px;display:flex;justify-content:center;box-sizing:border-box;color:var(--muted);}
-
-    .app {
-        width:100%; max-width:1100px;
-        display:grid;
-        grid-template-columns: 1fr 420px;
-        gap:20px;
-    }
-
-    .card {
-        background: linear-gradient(180deg, var(--card), var(--card));
-        border-radius:12px;
-        padding:16px;
-        box-shadow:0 6px 18px rgba(2,6,23,0.06);
-        color:var(--muted);
-    }
-
-    header.appHeader{
-        grid-column:1/-1;
-        display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;
-    }
-    .title { font-weight:700; color:var(--muted); font-size:18px; font-family:var(--mono); }
-    .small { font-size:13px; color:var(--muted); }
-
-    .controls { display:flex; gap:8px; align-items:center; }
-
-    select, input[type="number"], textarea {
-        width:100%; padding:10px; border-radius:8px; border:1px solid var(--glass); background:transparent; color:var(--muted);
-        box-sizing:border-box; font-family:var(--mono); font-size:13px;
-    }
-    textarea { min-height:100px; resize:vertical; }
-
-    button {
-        padding:10px 12px; border-radius:8px; border:0; background:var(--accent); color:#fff; cursor:pointer; font-weight:600; font-family:var(--mono);
-    }
-    button.ghost { background:transparent; color:var(--muted); border:1px solid var(--glass); }
-    button.danger { background:var(--danger); }
-
-    .row { display:flex; gap:8px; align-items:center; }
-    .col { display:flex; flex-direction:column; gap:8px; }
-
-    h3 { margin:0; font-family:var(--mono); color:var(--muted); font-size:14px; }
-
-    .list { max-height:300px; overflow:auto; padding:8px; display:flex; flex-direction:column; gap:8px; }
-    .codeItem { display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--glass); border-radius:8px; font-family:var(--mono); color:var(--muted); }
-    .meta { font-size:12px; color:var(--muted); }
-
-    .stockBar { font-family:var(--mono); font-size:13px; padding:8px; background:var(--glass); border-radius:8px; }
-
-    pre.outputBox{
-        margin:0; white-space:pre; font-family:var(--mono); color:var(--muted); font-size:13px; background:transparent; border:0;
-    }
-
-    .flexBetween { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-
-    .smallBtn { padding:6px 8px; border-radius:6px; background:transparent; border:1px solid var(--glass); color:var(--muted); cursor:pointer; font-family:var(--mono); }
-
-    footer { grid-column:1/-1; margin-top:8px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px; }
-
-    /* Responsive */
-    @media (max-width:980px){
-        .app{ grid-template-columns: 1fr; }
-    }
-
-    /* modal */
-    .modal {
-        position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:50;
-    }
-    .modal.show { display:flex; }
-    .modalCard { width:100%; max-width:560px; background:var(--card); border-radius:10px; padding:16px; color:var(--muted); box-shadow:0 12px 40px rgba(2,6,23,0.5); font-family:var(--mono); }
-    .modalFooter { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+  body {
+    font-family: monospace;
+    padding: 20px;
+    background: #f4f4f4;
+  }
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  label { display:block; margin-top:10px; font-weight:bold; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  button {
+    margin-top: 15px;
+    padding: 12px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    background: black;
+    color: white;
+    font-size: 16px;
+  }
+  pre {
+    background: #222;
+    color: #0f0;
+    padding: 15px;
+    border-radius: 10px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
 </style>
 </head>
 <body>
 
-<div class="app">
+<div class="card">
+  <h2>Order Generator</h2>
 
-    <header class="card appHeader">
-        <div>
-            <div class="title">Arriab Store — Redeem Manager</div>
-            <div class="small">Manage your redeem codes (7D / 30D). Client-side, GitHub Pages ready.</div>
-        </div>
+  <label>Pilih Produk</label>
+  <select id="type" onchange="setPrice()">
+    <option value="7">VIP 7 Day</option>
+    <option value="30">VIP 30 Day</option>
+  </select>
 
-        <div class="controls">
-            <button id="copyOutputBtn" class="ghost" title="Copy last output">Copy Output</button>
-            <button id="toggleTheme" class="smallBtn">Dark</button>
-        </div>
-    </header>
+  <label>Harga</label>
+  <input type="number" id="price" value="0" />
 
-    <!-- LEFT: management -->
-    <section class="card">
-        <h3>1) Add codes (one per line)</h3>
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-            <select id="typeSelect" style="width:160px;">
-                <option value="7D">7 Day</option>
-                <option value="30D">30 Day</option>
-            </select>
+  <label>Take Quantity</label>
+  <input type="number" id="qty" value="1" />
 
-            <input type="number" id="quantityInput" min="1" value="1" style="width:120px;" title="Quantity each code">
-        </div>
+  <label>Kode Redeem (pisah baris untuk banyak kode)</label>
+  <textarea id="codes" rows="5"></textarea>
 
-        <textarea id="codeInput" placeholder="Paste codes here, one code per line (no duplicates)"></textarea>
+  <button onclick="generateOutput()">Generate Output</button>
+</div>
 
-        <div style="display:flex;gap:8px;margin-top:8px;">
-            <button id="addBtn">Add codes</button>
-            <button id="clearAll" class="ghost">Clear all codes</button>
-            <button id="deleteDup" class="ghost">Remove duplicates</button>
+<div class="card">
+  <h3>Output</h3>
+  <pre id="output"></pre>
+  <button onclick="copyText()">Copy All</button>
+</div>
+
+<script>
+function setPrice() {
+  let t = document.getElementById("type").value;
+  document.getElementById("price").value = t == "7" ? 21000 : 61000;
+}
+
+function generateOutput() {
+  let type = document.getElementById("type").value;
+  let price = parseInt(document.getElementById("price").value);
+  let qty = parseInt(document.getElementById("qty").value);
+  let codes = document.getElementById("codes").value.trim().split("\n");
+
+  let codeLines = codes.map(c => c.trim()).join("\n");
+  let totalPrice = price * qty;
+
+  let text =
+`== ORDER CONFIRMATION ==
+Product      :                            VIP Redeem Code ${type} Day (Redfinger)
+Quantity     :                                                   ${qty}x
+Total Price  :                                         Rp ${totalPrice}
+Redeem Code  :
+${codeLines}
+
+Note:
+- Each code can be used for NewCloud and RenewCloud.
+- Each code can be used only once.
+- No refund unless store error.
+
+Thank you for ordering from Arriab Store!`;
+
+  document.getElementById("output").innerText = text;
+}
+
+function copyText() {
+  navigator.clipboard.writeText(document.getElementById("output").innerText);
+}
+</script>
+
+</body>
+</html>
         </div>
 
         <hr style="margin:12px 0">
